@@ -106,12 +106,4 @@ class NLPProcessor:
     def supported_vectorizers():
         return ["tfidf", "count"]
 
-if __name__ == "__main__":
-    processor = NLPProcessor(stem=True, lemmatize=True, vectorize="tfidf", tokenize=True, remove_stopwords=True,
-                             pos_tagging=True, ner=True, normalize=True, backend="spacy")
-    sample_texts = [
-        ["The quick brown fox jumps over the lazy dog.", "I am running a marathon next week."],
-        ["This is an NLP processing pipeline!", "Will it work effectively?"]
-    ]
-    output = processor.process(sample_texts)
-    print(output)
+
