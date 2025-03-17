@@ -2,6 +2,7 @@ import os
 import importlib
 import nltk
 import pkg_resources
+import numpy as np
 
 class NLPProcessor:
     def __init__(self, stem=False, lemmatize=False, vectorize=None, backend="nltk"):
@@ -67,9 +68,7 @@ class NLPProcessor:
         except AttributeError:
             return None
     
-    def process(self, text):
-        if not isinstance(text, str):
-            raise ValueError("Input text must be a string.")
+    def process_text(self, text):
         words = text.split()
         
         if self.stem and self.stemmer:
@@ -82,20 +81,25 @@ class NLPProcessor:
                 doc = self.lemmatizer(" ".join(words))
                 words = [token.lemma_ for token in doc]
         
-        processed_text = " ".join(words)
+        return " ".join(words)
+    
+    def process(self, input_data):
+        if isinstance(input_data, str):
+            processed_text = self.process_text(input_data)
+            return self.vectorize_text([processed_text]) if self.vectorizer_model else processed_text
         
-        if self.vectorizer_model:
-            vectorized_output = self.vectorizer_model.fit_transform([processed_text])
-            return vectorized_output.toarray()
+        elif isinstance(input_data, list) or isinstance(input_data, np.ndarray):
+            flat_list = [self.process_text(text) for row in input_data for text in row]
+            reshaped_output = np.array(flat_list).reshape(np.shape(input_data))
+            return self.vectorize_text(flat_list) if self.vectorizer_model else reshaped_output
         
-        return processed_text
+        else:
+            raise ValueError("Input must be a string or a 2D list/array of strings.")
+    
+    def vectorize_text(self, texts):
+        vectorized_output = self.vectorizer_model.fit_transform(texts)
+        return vectorized_output.toarray()
     
     @staticmethod
     def supported_vectorizers():
         return ["tfidf", "count"]
-
-# Example Usage:
-if __name__ == "__main__":
-    processor = NLPProcessor(stem=True, lemmatize=True, vectorize="tfidf", backend="spacy")
-    output = processor.process("running jumped swimming")
-    print(output)
