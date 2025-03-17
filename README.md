@@ -2,6 +2,11 @@
 
 ## Overview
 NLPProcessor is an automated, adaptive NLP pipeline that dynamically handles:
+- **Tokenization** (Word & Sentence)
+- **Stopword Removal**
+- **POS Tagging**
+- **Named Entity Recognition (NER)**
+- **Text Normalization** (Lowercasing, Punctuation Removal, etc.)
 - **Stemming & Lemmatization** (via NLTK or spaCy)
 - **Vectorization** (TF-IDF or Count Vectorizer)
 - **Dependency Management** (Auto-installs missing libraries)
@@ -51,6 +56,11 @@ print(output)
 | `stem` | Enable stemming (default: `False`) |
 | `lemmatize` | Enable lemmatization (default: `False`) |
 | `vectorize` | Choose "tfidf", "count", or `None` (default: `None`) |
+| `tokenize` | Enable word/sentence tokenization (default: `False`) |
+| `remove_stopwords` | Remove stopwords (default: `False`) |
+| `pos_tagging` | Enable Part-of-Speech tagging (default: `False`) |
+| `ner` | Enable Named Entity Recognition (default: `False`) |
+| `normalize` | Lowercase and remove punctuation (default: `False`) |
 | `backend` | Choose "nltk" or "spacy" (default: "nltk") |
 
 ### Check Supported Vectorizers
@@ -59,4 +69,5 @@ print(NLPProcessor.supported_vectorizers())  # ['tfidf', 'count']
 ```
 
 ## License
-MIT License
+This project is licensed under the MIT License - see the LICENSE file for details.
+
