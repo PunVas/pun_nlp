@@ -1,10 +1,11 @@
 from setuptools import setup, find_packages
 
+
 setup(
     name="pun_nlp",
-    version="0.1.0",
-    author="Your Name",
-    author_email="your_email@example.com",
+    version="0.1.1",
+    author="Puneet Vaswani",
+    author_email="vaswaniusham2212@gmail.com",
     description="A robust NLP pipeline for stemming, lemmatization, and vectorization",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
