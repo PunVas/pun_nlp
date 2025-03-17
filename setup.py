@@ -8,7 +8,7 @@ setup(
     description="A robust NLP pipeline for stemming, lemmatization, and vectorization",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/nlp_pipeline",
+    url="https://github.com/PunVas/nlp_pipeline",
     packages=find_packages(),
     install_requires=[
         "nltk",
@@ -17,7 +17,6 @@ setup(
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.7',
