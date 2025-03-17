@@ -1,105 +1,117 @@
-import os
-import importlib
 import nltk
-import pkg_resources
+import spacy
+import string
+import re
 import numpy as np
+from nltk.tokenize import word_tokenize, sent_tokenize
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer, WordNetLemmatizer
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+
+# Ensure required NLTK downloads
+nltk.download('punkt')
+nltk.download('stopwords')
+nltk.download('averaged_perceptron_tagger')
+nltk.download('wordnet')
+nltk.download('omw-1.4')
 
 class NLPProcessor:
-    def __init__(self, stem=False, lemmatize=False, vectorize=None, backend="nltk"):
+    def __init__(self, stem=False, lemmatize=False, vectorize=None, tokenize=False, remove_stopwords=False,
+                 pos_tagging=False, ner=False, normalize=False, backend="nltk"):
         self.stem = stem
         self.lemmatize = lemmatize
         self.vectorize = vectorize
+        self.tokenize = tokenize
+        self.remove_stopwords = remove_stopwords
+        self.pos_tagging = pos_tagging
+        self.ner = ner
+        self.normalize = normalize
         self.backend = backend.lower()
         
-        self.ensure_dependencies()
+        # Initialize NLP tools
+        self.stemmer = PorterStemmer()
+        self.lemmatizer = WordNetLemmatizer()
+        self.stop_words = set(stopwords.words('english'))
         
-        # Dynamically import libraries
-        self.nltk = importlib.import_module("nltk")
-        self.sklearn = importlib.import_module("sklearn.feature_extraction.text")
-        self.spacy = importlib.import_module("spacy") if self.backend == "spacy" else None
+        # Load spaCy model if required
+        self.spacy_model = None
+        if self.backend == "spacy" or self.ner:
+            self.spacy_model = spacy.load("en_core_web_sm")
         
-        # Load NLP components dynamically
-        self.stemmer = self.get_stemmer() if self.stem else None
-        self.lemmatizer = self.get_lemmatizer() if self.lemmatize else None
-        self.vectorizer_model = self.get_vectorizer() if self.vectorize else None
-        
-    def ensure_dependencies(self):
-        required_packages = ["nltk", "spacy", "scikit-learn"]
-        missing_packages = [pkg for pkg in required_packages if not self.is_installed(pkg)]
-        
-        if missing_packages:
-            os.system(f"pip install {' '.join(missing_packages)}")
-        
-        nltk.download("wordnet")
-        nltk.download("omw-1.4")
-        os.system("python -m spacy download en_core_web_sm")
+        # Initialize vectorizer
+        if self.vectorize == "tfidf":
+            self.vectorizer = TfidfVectorizer()
+        elif self.vectorize == "count":
+            self.vectorizer = CountVectorizer()
+        else:
+            self.vectorizer = None
+
+    def _normalize_text(self, text):
+        """Lowercases and removes punctuation"""
+        text = text.lower()
+        text = re.sub(f"[{string.punctuation}]", "", text)
+        return text
     
-    def is_installed(self, package):
-        try:
-            pkg_resources.get_distribution(package)
-            return True
-        except pkg_resources.DistributionNotFound:
-            return False
-    
-    def get_stemmer(self):
-        try:
-            return self.nltk.stem.PorterStemmer()
-        except AttributeError:
-            return None
-    
-    def get_lemmatizer(self):
-        if self.backend == "nltk":
-            try:
-                return self.nltk.stem.WordNetLemmatizer()
-            except AttributeError:
-                return None
-        elif self.backend == "spacy":
-            try:
-                return self.spacy.load("en_core_web_sm")
-            except OSError:
-                return None
-    
-    def get_vectorizer(self):
-        try:
-            if self.vectorize == "tfidf":
-                return self.sklearn.TfidfVectorizer()
-            elif self.vectorize == "count":
-                return self.sklearn.CountVectorizer()
-        except AttributeError:
-            return None
-    
-    def process_text(self, text):
-        words = text.split()
+    def _process_text(self, text):
+        """Processes a single text input"""
+        if self.normalize:
+            text = self._normalize_text(text)
         
-        if self.stem and self.stemmer:
-            words = [self.stemmer.stem(word) for word in words]
+        tokens = word_tokenize(text) if self.tokenize else [text]
+        
+        if self.remove_stopwords:
+            tokens = [word for word in tokens if word not in self.stop_words]
+        
+        if self.stem:
+            tokens = [self.stemmer.stem(word) for word in tokens]
         
         if self.lemmatize:
-            if self.backend == "nltk" and self.lemmatizer:
-                words = [self.lemmatizer.lemmatize(word) for word in words]
-            elif self.backend == "spacy" and self.lemmatizer:
-                doc = self.lemmatizer(" ".join(words))
-                words = [token.lemma_ for token in doc]
+            tokens = [self.lemmatizer.lemmatize(word) for word in tokens]
         
-        return " ".join(words)
+        if self.pos_tagging:
+            tokens = nltk.pos_tag(tokens)
+        
+        if self.ner and self.spacy_model:
+            doc = self.spacy_model(text)
+            tokens = [(ent.text, ent.label_) for ent in doc.ents]
+        
+        return tokens
     
-    def process(self, input_data):
-        if isinstance(input_data, str):
-            processed_text = self.process_text(input_data)
-            return self.vectorize_text([processed_text]) if self.vectorizer_model else processed_text
+    def process(self, texts):
+        """Processes a list or 2D array of texts"""
+        if isinstance(texts, str):
+            return self._process_text(texts)
         
-        elif isinstance(input_data, list) or isinstance(input_data, np.ndarray):
-            flat_list = [self.process_text(text) for row in input_data for text in row]
-            reshaped_output = np.array(flat_list).reshape(np.shape(input_data))
-            return self.vectorize_text(flat_list) if self.vectorizer_model else reshaped_output
+        elif isinstance(texts, list):
+            if all(isinstance(sublist, list) for sublist in texts):  # 2D array
+                return [[self._process_text(text) for text in sublist] for sublist in texts]
+            else:  # 1D list
+                return [self._process_text(text) for text in texts]
         
-        else:
-            raise ValueError("Input must be a string or a 2D list/array of strings.")
+        return None
     
-    def vectorize_text(self, texts):
-        vectorized_output = self.vectorizer_model.fit_transform(texts)
-        return vectorized_output.toarray()
+    def fit_vectorizer(self, texts):
+        """Fits the vectorizer to the given texts"""
+        if self.vectorizer:
+            texts = [" ".join(self._process_text(text)) for text in texts]
+            self.vectorizer.fit(texts)
+    
+    def transform_texts(self, texts):
+        """Transforms texts using the fitted vectorizer"""
+        if self.vectorizer:
+            texts = [" ".join(self._process_text(text)) for text in texts]
+            return self.vectorizer.transform(texts).toarray()
     
     @staticmethod
     def supported_vectorizers():
         return ["tfidf", "count"]
+
+if __name__ == "__main__":
+    processor = NLPProcessor(stem=True, lemmatize=True, vectorize="tfidf", tokenize=True, remove_stopwords=True,
+                             pos_tagging=True, ner=True, normalize=True, backend="spacy")
+    sample_texts = [
+        ["The quick brown fox jumps over the lazy dog.", "I am running a marathon next week."],
+        ["This is an NLP processing pipeline!", "Will it work effectively?"]
+    ]
+    output = processor.process(sample_texts)
+    print(output)
