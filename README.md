@@ -23,13 +23,13 @@ NLPProcessor is an automated, adaptive NLP pipeline that dynamically handles:
 ## Installation
 Run the following command to install missing dependencies:
 ```bash
-python your_script.py
+pip install pun_nlp
 ```
 
 ## Usage
 ### Import and Initialize
 ```python
-from your_script import NLPProcessor
+from pun_nlp import NLPProcessor
 
 processor = NLPProcessor(stem=True, lemmatize=True, vectorize="tfidf", backend="spacy")
 ```
