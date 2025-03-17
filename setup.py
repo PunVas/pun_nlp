@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="pun_nlp",
-    version="0.1.0",
+    version="0.0.1",
     author="Puneet Vaswani",
     author_email="vaswaniusham2212@gmail.com",
     description="A robust NLP pipeline for stemming, lemmatization, and vectorization",
