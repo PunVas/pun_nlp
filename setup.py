@@ -1,14 +1,14 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="nlp_pipeline",
+    name="pun_nlp",
     version="0.1.0",
     author="Your Name",
     author_email="your_email@example.com",
     description="A robust NLP pipeline for stemming, lemmatization, and vectorization",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    url="https://github.com/PunVas/nlp_pipeline",
+    url="https://github.com/PunVas/pun_nlp",
     packages=find_packages(),
     install_requires=[
         "nltk",
