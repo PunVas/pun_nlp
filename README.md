@@ -9,9 +9,9 @@ NLPProcessor is an automated, adaptive NLP pipeline that dynamically handles:
 - **Text Normalization** (Lowercasing, Punctuation Removal, etc.)
 - **Stemming & Lemmatization** (via NLTK or spaCy)
 - **Vectorization** (TF-IDF or Count Vectorizer)
-- **Dependency Management** (Auto-installs missing libraries)
-- **Support for 2D Text Arrays** (Processes lists of lists of text)
-- **Exception-Free Execution** (Handles API changes without breaking)
+- **Dependency Management** (Auto-installs missing libraries.)
+- **Support for 2D Text Arrays** (Processes lists of lists of text.)
+- **Exception-Free Execution** (Handles API changes without breaking.)
 
 ## Features
 - **Automated dependency installation**
