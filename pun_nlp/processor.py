@@ -8,7 +8,6 @@ from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer, WordNetLemmatizer
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 
-# Ensure required NLTK downloads
 nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('averaged_perceptron_tagger')
@@ -28,17 +27,14 @@ class NLPProcessor:
         self.normalize = normalize
         self.backend = backend.lower()
         
-        # Initialize NLP tools
         self.stemmer = PorterStemmer()
         self.lemmatizer = WordNetLemmatizer()
         self.stop_words = set(stopwords.words('english'))
         
-        # Load spaCy model if required
         self.spacy_model = None
         if self.backend == "spacy" or self.ner:
             self.spacy_model = spacy.load("en_core_web_sm")
         
-        # Initialize vectorizer
         if self.vectorize == "tfidf":
             self.vectorizer = TfidfVectorizer()
         elif self.vectorize == "count":
