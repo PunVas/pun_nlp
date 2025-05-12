@@ -1,4 +1,5 @@
 # NLPProcessor
+[![PyPI Downloads](https://static.pepy.tech/badge/pun-nlp)](https://pepy.tech/projects/pun-nlp)
 
 ## Overview
 NLPProcessor is an automated, adaptive NLP pipeline that dynamically handles:
