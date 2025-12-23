@@ -1,74 +1,83 @@
-# NLPProcessor
+# pun_nlp
 [![PyPI Downloads](https://static.pepy.tech/badge/pun-nlp)](https://pepy.tech/projects/pun-nlp)
 
 ## Overview
-NLPProcessor is an automated, adaptive NLP pipeline that dynamically handles:
-- **Tokenization** (Word & Sentence)
-- **Stopword Removal**
-- **POS Tagging**
-- **Named Entity Recognition (NER)**
-- **Text Normalization** (Lowercasing, Punctuation Removal, etc.)
-- **Stemming & Lemmatization** (via NLTK or spaCy)
-- **Vectorization** (TF-IDF or Count Vectorizer)
-- **Dependency Management** (Auto-installs missing libraries.)
-- **Support for 2D Text Arrays** (Processes lists of lists of text.)
-- **Exception-Free Execution** (Handles API changes without breaking.)
+pun_nlp is a robust NLP abstraction layer designed to simplify text processing and vectorization. It handles dependency management, resource downloading, and text preprocessing automatically, so you don't have to write boilerplate code.
+
+It solves common issues with NLTK downloads and path errors by implementing a robust, lazy-loading resource manager that works in restricted environments like Kaggle and corporate servers.
 
 ## Features
-- **Automated dependency installation**
-- **Works with both NLTK and spaCy**
-- **Vectorization support using scikit-learn**
-- **Handles single strings and 2D arrays**
-- **No human intervention required**
+-   **Robust Resource Management**: Automatically handles NLTK/Spacy downloads and SSL errors.
+-   **Lazy Loading**: Resources are only loaded into memory when needed.
+-   **Type Safety**: Prevents invalid combinations of operations (like vectorizing POS tuples).
+-   **Unified API**: Process single strings, lists, or 2D arrays of text with one method.
+-   **Seamless Vectorization**: Integrates directly with Scikit-Learn's TF-IDF and Count vectorizers.
 
 ## Installation
-Run the following command to install missing dependencies:
 ```bash
 pip install pun_nlp
 ```
 
 ## Usage
-### Import and Initialize
+
+### Basic Pipeline
 ```python
 from pun_nlp import NLPProcessor
 
-processor = NLPProcessor(stem=True, lemmatize=True, vectorize="tfidf", backend="spacy")
+# Initialize with desired flags
+p = NLPProcessor(
+    tokenize=True, 
+    stem=True, 
+    remove_stopwords=True,
+    normalize=True
+)
+
+text = "The QUICK brown foxes are running fast!"
+
+# Automatically handles downloads and processing
+print(p.process(text))
+# Output: ['quick', 'brown', 'fox', 'run', 'fast']
 ```
 
-### Process a Single Text
+### NER & POS Tagging
 ```python
-output = processor.process("running jumped swimming")
-print(output)
+# NER (Case sensitive checking happens before normalization)
+p_ner = NLPProcessor(ner=True)
+print(p_ner.process("Apple Inc. is hiring in California."))
+# Output: [('Apple Inc.', 'ORG'), ('California', 'GPE')]
+
+# POS Tagging (Tags tokens correctly before stemming)
+p_pos = NLPProcessor(pos_tagging=True, stem=True)
+print(p_pos.process("The boys are likely running."))
+# Output: [('the', 'DT'), ('boy', 'NNS'), ('are', 'VBP'), ('like', 'RB'), ('run', 'VBG')]
 ```
 
-### Process a 2D Array of Text
+### Vectorization
 ```python
-input_texts = [
-    ["I am running", "He is jumping"],
-    ["They are swimming", "Dogs are barking"]
+p_vec = NLPProcessor(vectorize="tfidf", stop_words=True)
+corpus = [
+    "Machine learning is fascinating.",
+    "Natural language processing is a subset of AI."
 ]
-output = processor.process(input_texts)
-print(output)
+
+p_vec.fit_vectorizer(corpus)
+vectors = p_vec.transform_texts(corpus)
+print(vectors.shape)
 ```
 
-### Customization Options
+## Configuration
 | Parameter | Description |
 |-----------|-------------|
-| `stem` | Enable stemming (default: `False`) |
-| `lemmatize` | Enable lemmatization (default: `False`) |
-| `vectorize` | Choose "tfidf", "count", or `None` (default: `None`) |
-| `tokenize` | Enable word/sentence tokenization (default: `False`) |
-| `remove_stopwords` | Remove stopwords (default: `False`) |
-| `pos_tagging` | Enable Part-of-Speech tagging (default: `False`) |
-| `ner` | Enable Named Entity Recognition (default: `False`) |
-| `normalize` | Lowercase and remove punctuation (default: `False`) |
-| `backend` | Choose "nltk" or "spacy" (default: "nltk") |
-
-### Check Supported Vectorizers
-```python
-print(NLPProcessor.supported_vectorizers())  # ['tfidf', 'count']
-```
+| `stem` | Enable stemming (PorterStemmer). |
+| `lemmatize` | Enable lemmatization (WordNet). |
+| `vectorize` | "tfidf", "count", or None. |
+| `tokenize` | Force return of token list. |
+| `remove_stopwords` | Remove English stopwords (Case-insensitive). |
+| `pos_tagging` | Return (Word, Tag) tuples. |
+| `ner` | Return Entity tuples (Uses Spacy). |
+| `normalize` | Lowercase & remove punctuation. |
+| `backend` | "nltk" (default) or "spacy". |
 
 ## License
-This project is licensed under the MIT License - see the LICENSE file for details.
+MIT License. See [LICENSE](LICENSE) for details.
 
