@@ -22,6 +22,31 @@ jobs:
           python -m pip install --upgrade pip
           pip install setuptools wheel twine
 
+      - name: Bump version
+        run: |
+          python -c "
+          import re
+          with open('setup.py', 'r') as f:
+              content = f.read()
+          
+          def bump(match):
+              major, minor, patch = map(int, match.groups())
+              return f'version=\"{major}.{minor}.{patch + 1}\"'
+          
+          new_content = re.sub(r'version=\"(\d+)\.(\d+)\.(\d+)\"', bump, content)
+          
+          with open('setup.py', 'w') as f:
+              f.write(new_content)
+          "
+
+      - name: Commit and push new version
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add setup.py
+          git commit -m "Bump version [skip ci]"
+          git push
+
       - name: Build package
         run: python setup.py sdist bdist_wheel
 
